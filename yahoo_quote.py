@@ -40,7 +40,7 @@ if __name__ == '__main__':  # noqa
 
     parser.add_argument(
         'ticker',
-        help="e.g., AAPL, MSFT, etc.")
+        help="company's ticker, e.g., AAPL, MSFT, etc.")
 
     parser.add_argument(
         'startdate',

@@ -45,14 +45,14 @@ if __name__ == '__main__':  # noqa
     parser.add_argument(
         'startdate',
         nargs='?',
-        help="format: Ymd",
+        help="format: Ymd, default: <today, %(default)s>",
         default=date.today().strftime('%Y%m%d'))
 
     parser.add_argument(
         'enddate',
         nargs='?',
-        help="format: Ymd",
-        default=(date.today() + timedelta(days=1)).strftime('%Y%m%d'))
+        help="format: Ymd, default: <today, %(default)s>",
+        default=date.today().strftime('%Y%m%d'))
     
     args = parser.parse_args()
 

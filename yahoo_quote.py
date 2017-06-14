@@ -28,6 +28,7 @@ class YahooQuote(object):
                         self.logger.info(line)
                         fh.write(line + '\n')
             self.logger.info('result file output file %s' % os.path.join(self.output,ticker + '.csv'))
+            return quotes
         except:
             self.logger.error('ticker %s quote not found from yahoo', exc_info=True)
 

@@ -1,6 +1,6 @@
 
 import logging
-import pymysql.cursors
+import pymysql
 
 class List(object):
     ''''''
@@ -12,16 +12,16 @@ class List(object):
         
     def __call__(self):
         ''''''
-        conn = pymysql.connect(host=self.db_config['host'],
-                               user=self.db_config['user'],
-                               password=self.db_config['password'],
-                               db=self.db_config['db'],
-                               cursorclass=self.db_config['cursorclass'],
-                               
-                               )
-        
+        queryset = []
         try:
-            queryset = []
+            conn = pymysql.connect(host=self.db_config['host'],
+                                   user=self.db_config['user'],
+                                   password=self.db_config['password'],
+                                   db=self.db_config['db'],
+                                   cursorclass=self.db_config['cursorclass'],
+                                   
+                                   )
+            
             if self.args.sp500:
                 self.logger.debug('list with sp500')
                 with conn.cursor() as cursor:
@@ -41,6 +41,8 @@ class List(object):
                     for row in rows:
                         self.logger.info('%s, %s' % (row['SecID'],row['SecName']))
                         queryset.append(row)
+        except pymysql.err.OperationalError:
+            self.logger.warning('Database Operation Error, Please Check Database Server!')
         except:
             self.logger.error('List SubCommand Exception', exc_info=True)
         finally:

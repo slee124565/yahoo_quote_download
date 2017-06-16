@@ -4,6 +4,7 @@ import argparse
 import logging
 import sys
 from commands.list import List
+from commands.update import Update
 from db_config import db_config
 
 logger = logging.getLogger(__name__)
@@ -54,14 +55,17 @@ The most commonly use wquote commands are:
     
     def update(self):
         parser = argparse.ArgumentParser(
-            description='Download stock trading data from TWSE'
+            description='Download stock trading data from Yahoo Financial'
             )
-        parser.add_argument('id', help='company id')
-        parser.add_argument('period', help='fetch data period: 3m or 3y; m for month, y for year')
+        parser.add_argument('--quote_id', 
+                            help='company stock id, sp500, nasdaq100 or all',
+                            default='all')
+        parser.add_argument('--period', 
+                            help='fetch data period: 1d, 2w, 3m or 3y; d for day, w for week, m for month, y for year')
         args = parser.parse_args(sys.argv[2:])
-        self.logger.info('update market trading exchange data for id %s and period %s' % (
-            args.id,args.period
-            ))
+        self.logger.info('quote update with args %s' % (args))
+        cmd = Update(args, self.db_config, logger=self.logger)
+        cmd()
     
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)

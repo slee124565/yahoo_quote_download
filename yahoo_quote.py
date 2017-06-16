@@ -21,13 +21,12 @@ class YahooQuote(object):
             quotes = yqd.load_yahoo_quote(ticker=ticker, 
                                  begindate=start_date, 
                                  enddate=end_date)
-
             with open(os.path.join(self.output,ticker + '.csv'),'w') as fh:
                 for line in quotes:
                     if line.strip() != '':
-                        self.logger.info(line)
+                        self.logger.debug(line)
                         fh.write(line + '\n')
-            self.logger.info('result file output file %s' % os.path.join(self.output,ticker + '.csv'))
+            self.logger.debug('result file output file %s' % os.path.join(self.output,ticker + '.csv'))
             return quotes
         except:
             self.logger.error('ticker %s quote not found from yahoo', exc_info=True)

@@ -94,7 +94,7 @@ def load_yahoo_quote(ticker, begindate, enddate, info = 'quote'):
 	param['crumb'] = _crumb
 	params = urllib.parse.urlencode(param)
 	url = 'https://query1.finance.yahoo.com/v7/finance/download/{}?{}'.format(ticker, params)
-	#print(url)
+	print(url)
 
 	# Perform the query
 	# There is no need to enter the cookie here, as it is automatically handled by opener

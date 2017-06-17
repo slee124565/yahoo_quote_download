@@ -62,6 +62,10 @@ The most commonly use wquote commands are:
                             default='all')
         parser.add_argument('--period', 
                             help='fetch data period: 1d, 2w, 3m or 3y; d for day, w for week, m for month, y for year')
+        parser.add_argument('--until_now',
+                            action='store_true',
+                            help='update since last time updated to now',
+                            default=False)
         args = parser.parse_args(sys.argv[2:])
         self.logger.info('quote update with args %s' % (args))
         cmd = Update(args, self.db_config, logger=self.logger)

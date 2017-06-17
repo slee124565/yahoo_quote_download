@@ -17,12 +17,13 @@ class YahooQuote(object):
             self.logger.info('output folder %s not exist, create' % self.output)
             os.mkdir(self.output)
         
-    @retry
-    def get_quote(self,ticker,start_date,end_date):
+    @retry(stop_max_attempt_number=3)
+    def get_quote(self,ticker,start_date,end_date,interval='1d'):
         try:
             quotes = yqd.load_yahoo_quote(ticker=ticker, 
                                  begindate=start_date, 
-                                 enddate=end_date)
+                                 enddate=end_date,
+                                 interval=interval)
             with open(os.path.join(self.output,ticker + '.csv'),'w') as fh:
                 for line in quotes:
                     if line.strip() != '':
@@ -56,10 +57,16 @@ if __name__ == '__main__':  # noqa
         help="format: Ymd, default: <today, %(default)s>",
         default=date.today().strftime('%Y%m%d'))
     
+    parser.add_argument(
+        '--interval',
+        nargs='?',
+        help="quote interval: 1d, 1wk, or 1mo, default: %(default)",
+        default='1d')
+
     args = parser.parse_args()
 
     FORMAT = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
     logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 
     quoute = YahooQuote()
-    quoute.get_quote(args.ticker, args.startdate, args.enddate)
+    quoute.get_quote(args.ticker, args.startdate, args.enddate, args.interval)

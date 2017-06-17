@@ -48,6 +48,7 @@ The most commonly use wquote commands are:
                             action='store_true',
                             help='NASDAQ100 market',
                             default=False)
+        
         args = parser.parse_args(sys.argv[2:])
         self.logger.info('quote list with args %s' % (args))
         cmd = List(args, self.db_config, logger=self.logger)
@@ -66,6 +67,11 @@ The most commonly use wquote commands are:
                             action='store_true',
                             help='update since last time updated to now',
                             default=False)
+        parser.add_argument('--interval',
+                            nargs='?',
+                            help="1d, 1wk, or 1mo, default: %(default)s",
+                            default='1d')
+        
         args = parser.parse_args(sys.argv[2:])
         self.logger.info('quote update with args %s' % (args))
         cmd = Update(args, self.db_config, logger=self.logger)

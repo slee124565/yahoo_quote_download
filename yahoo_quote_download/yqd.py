@@ -68,7 +68,7 @@ def _get_cookie_crumb():
 	#print('Cookie:', _cookie)
 	#print('Crumb:', _crumb)
 
-def load_yahoo_quote(ticker, begindate, enddate, info = 'quote'):
+def load_yahoo_quote(ticker, begindate, enddate, interval='1d', info = 'quote'):
 	'''
 	This function load the corresponding history/divident/split from Yahoo.
 	'''
@@ -84,7 +84,7 @@ def load_yahoo_quote(ticker, begindate, enddate, info = 'quote'):
 	param = dict()
 	param['period1'] = int(tb)
 	param['period2'] = int(te)
-	param['interval'] = '1d'
+	param['interval'] = interval
 	if info == 'quote':
 		param['events'] = 'history'
 	elif info == 'dividend':

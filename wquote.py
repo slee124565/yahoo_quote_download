@@ -71,6 +71,10 @@ The most commonly use wquote commands are:
                             nargs='?',
                             help="1d, 1wk, or 1mo, default: %(default)s",
                             default='1d')
+        parser.add_argument('--develop',
+                            action='store_true',
+                            help="develop mode will print debug message, default: %(default)s",
+                            default=False)
         
         args = parser.parse_args(sys.argv[2:])
         self.logger.info('quote update with args %s' % (args))
@@ -78,6 +82,6 @@ The most commonly use wquote commands are:
         cmd()
     
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     WQuote()
     

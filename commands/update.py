@@ -5,6 +5,8 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import sys
 from yahoo_quote import YahooQuote
+from six.moves import urllib
+
 
 class Update(object):
     ''''''
@@ -13,6 +15,8 @@ class Update(object):
         self.args = args
         self.db_config = db_config
         self.logger = logger or logging.getLogger(__name__)
+        if self.args.develop:
+            self.logger.setLevel = logging.DEBUG
 
     def __call__(self):
         ''''''
@@ -117,10 +121,15 @@ class Update(object):
                                                             start_date.strftime('%Y%m%d'),
                                                             end_date.strftime('%Y%m%d'),
                                                             self.args.interval))
-                quotes = yahoo_quote.get_quote(ticker, 
+                try:
+                    quotes = yahoo_quote.get_quote(ticker, 
                                                start_date.strftime('%Y%m%d'), 
                                                end_date.strftime('%Y%m%d'),
                                                self.args.interval)
+                except urllib.error.HTTPError:
+                    self.logger.error('yahoo_quote HTTPError, skip this ticker %s' % ticker, exc_info=True)
+                    continue
+                       
                 self.logger.debug('yahoo quote count %s' % (len(quotes)))
                 self.logger.debug(quotes[0])
                 for date_quote in quotes[1:]:
@@ -132,8 +141,10 @@ class Update(object):
                             try:
                                 _ = [float(x) for x in columns[1:]]
                                 t_date = datetime.strptime(t_date,'%Y-%m-%d')
+                                t_open,t_high,t_low,t_close = ['{:.2f}'.format(float(x)) for x in columns[1:-2]]
                             except:
-                                self.logger.warning('ticker %s quote %s update exception, skip!' % (ticker,date_quote))
+                                self.logger.error('ticker %s quote %s update exception, skip!' % (ticker,date_quote),
+                                                  exc_info=True)
                                 continue
                             sql = "select count(*) from %s where DDate = '%s' and StockID = '%s'" % (
                                 q_table,t_date,ticker)

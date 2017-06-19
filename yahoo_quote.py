@@ -4,7 +4,7 @@ from yahoo_quote_download import yqd
 import logging
 from datetime import date, timedelta
 import os
-import six
+from six.moves import urllib
 from retrying import retry
 
 class YahooQuote(object):
@@ -31,6 +31,9 @@ class YahooQuote(object):
                         fh.write(line + '\n')
             self.logger.debug('result file output file %s' % os.path.join(self.output,ticker + '.csv'))
             return quotes
+        except urllib.error.HTTPError:
+            self.logger.error('get_quote HTTP ERROR', exc_info=True)
+            return None
         except:
             self.logger.error('ticker %s quote not found from yahoo' % ticker, exc_info=True)
 

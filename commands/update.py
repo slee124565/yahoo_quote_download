@@ -52,7 +52,6 @@ class Update(object):
                 except:
                     self.logger.error('update args [period] error')
                     sys.exit(1)
-            self.logger.info('update quote from %s - %s' % (start_date,end_date))
                 
             #-> args.quote_id
             quote_id_list = self.args.quote_id.split(',')
@@ -121,13 +120,12 @@ class Update(object):
                                                             start_date.strftime('%Y%m%d'),
                                                             end_date.strftime('%Y%m%d'),
                                                             self.args.interval))
-                try:
-                    quotes = yahoo_quote.get_quote(ticker, 
-                                               start_date.strftime('%Y%m%d'), 
-                                               end_date.strftime('%Y%m%d'),
-                                               self.args.interval)
-                except urllib.error.HTTPError:
-                    self.logger.error('yahoo_quote HTTPError, skip this ticker %s' % ticker, exc_info=True)
+                quotes = yahoo_quote.get_quote(ticker, 
+                                           start_date.strftime('%Y%m%d'), 
+                                           end_date.strftime('%Y%m%d'),
+                                           self.args.interval)
+                if quotes is None:
+                    self.logger.warning('yahoo_quote.get_quote for ticker %s, skip to next' % ticker)
                     continue
                        
                 self.logger.debug('yahoo quote count %s' % (len(quotes)))

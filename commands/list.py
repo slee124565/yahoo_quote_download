@@ -42,6 +42,17 @@ class List(object):
                     for row in rows:
                         self.logger.info('%s, %s' % (row['SecID'],row['SecName']))
                         queryset.append(row)
+                
+            if self.args.idx:
+                self.logger.debug('list with IDX')
+                with conn.cursor() as cursor:
+                    sql = "select Index_ID, Index_Name from idx;"
+                    cursor.execute(sql)
+                    rows = cursor.fetchall()
+                    for row in rows:
+                        self.logger.info('%s, %s' % (row['Index_ID'],row['Index_Name']))
+                        queryset.append(row)
+
         except pymysql.err.OperationalError:
             self.logger.warning('Database Operation Error, Please Check Database Server!')
         except:

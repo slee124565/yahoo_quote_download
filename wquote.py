@@ -38,7 +38,14 @@ The most commonly use wquote commands are:
         
     def list(self):
         parser = argparse.ArgumentParser(
-            description='List all stock id and name from TWSE'
+            description='List all stock id and name from TWSE',
+            usage='''wquote list [<args>]
+            
+The most commonly use wquote commands are:
+    wquote list -n    List including NASDAQ100 tickers
+    wquote list -s    List including S&P500 tickers
+    wquote list -i    List including IDX tickers
+'''
             )
         parser.add_argument('-s','--sp500',
                             action='store_true',
@@ -48,6 +55,10 @@ The most commonly use wquote commands are:
                             action='store_true',
                             help='NASDAQ100 market',
                             default=False)
+        parser.add_argument('-i','--idx',
+                            action='store_true',
+                            help='IDX market',
+                            default=False)
         
         args = parser.parse_args(sys.argv[2:])
         self.logger.info('quote list with args %s' % (args))
@@ -56,7 +67,7 @@ The most commonly use wquote commands are:
     
     def update(self):
         parser = argparse.ArgumentParser(
-            description='Download stock trading data from Yahoo Financial'
+            description='Download stock trading data from Yahoo Financial',
             )
         parser.add_argument('--quote_id', 
                             help='company stock id, sp500, nasdaq100 or all',

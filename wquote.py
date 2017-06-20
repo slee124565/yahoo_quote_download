@@ -82,6 +82,5 @@ The most commonly use wquote commands are:
         cmd()
     
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
     WQuote()
     

@@ -16,7 +16,7 @@ class Update(object):
         self.db_config = db_config
         self.logger = logger or logging.getLogger(__name__)
         if self.args.develop:
-            self.logger.setLevel = logging.DEBUG
+            logging.basicConfig(level=logging.DEBUG)
 
     def __call__(self):
         ''''''
@@ -112,7 +112,10 @@ class Update(object):
                         query_set = cursor.fetchone()
                         self.logger.debug('query_set type %s, %s' % (type(query_set),str(query_set)))
                         if query_set is None:
-                            start_date = end_date - relativedelta(years=1)
+                            if self.args.interval == '1d':
+                                start_date = end_date - relativedelta(years=3,months=6)
+                            else:
+                                start_date = end_date - relativedelta(years=5)
                             start_date = start_date.date()
                         else:
                             start_date = query_set['DDate']

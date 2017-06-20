@@ -6,6 +6,7 @@ class List(object):
     ''''''
     
     def __init__(self, args, db_config, logger=None):
+        logging.basicConfig(level=logging.INFO)
         self.args = args
         self.db_config = db_config
         self.logger = logger or logging.getLogger(__name__)

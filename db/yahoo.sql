@@ -1,8 +1,8 @@
--- MySQL dump 10.16  Distrib 10.1.16-MariaDB, for osx10.11 (x86_64)
+-- MySQL dump 10.16  Distrib 10.1.17-MariaDB, for osx10.10 (x86_64)
 --
 -- Host: localhost    Database: yahoo
 -- ------------------------------------------------------
--- Server version	10.1.16-MariaDB
+-- Server version	10.1.17-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -14,6 +14,111 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `idx`
+--
+
+DROP TABLE IF EXISTS `idx`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `idx` (
+  `Index_ID` varchar(10) NOT NULL,
+  `Index_Name` varchar(50) NOT NULL,
+  `CountryName` varchar(30) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `idx`
+--
+
+LOCK TABLES `idx` WRITE;
+/*!40000 ALTER TABLE `idx` DISABLE KEYS */;
+INSERT INTO `idx` VALUES ('^TWII','TSEC weighted index','Taiwan'),('^TFNI','TSEC finance subindex','Taiwan'),('^TPLI','TSEC plastics subindex','Taiwan'),('^TFII','TSEC foods subindex','Taiwan'),('^TEII','TSEC electrical subindex','Taiwan'),('^DJI','Dow Jones','United States'),('^GSPC','S&P 500','United States'),('^OEX','S&P 100','United States'),('^MID','S&P MID CAP 400 INDEX','United States'),('^IXIC','NASDAQ','United States'),('^NDX','NASDAQ 100','United States'),('^BANK','NASDAQ Bank','United States'),('^NBI','NASDAQ Biotechnology','United States'),('^IXCO','NASDAQ Computer','United States'),('^INDS','NASDAQ Industrial','United States'),('^INSR','NASDAQ Insurance','United States'),('^TRAN','NASDAQ Transportation','United States'),('^NYA','NYSE COMPOSITE','United States'),('^RUA','Russell 3000','United States'),('^RUT','Russell 2000','United States'),('^RUI','Russell 1000','United States'),('^SOX','PHLX Semiconductor','United States'),('^FTSE','FTSE 100','United Kingdom'),('^GDAXI','DAX','Germany'),('^FCHI','CAC 40','France'),('^STOXX50E','ESTX50 EUR P','Europe'),('^ATX','ATX','Austria'),('^SSMI','Swiss Market','Switzerland'),('^OSEAX','OSE All Share','Norway'),('^SMSI','Madrid General','Spain'),('^BFX','BEL-20','Belgium'),('^MXX','IPC','Mexico'),('^GSPTSE','S&P/TSX Composite index','Canada'),('^BVSP','IBOVESPA','Brazil'),('^SSEC','Shanghai Composite','China'),('^SZSC','深證成指','China'),('^SZSA','深證A指','China'),('^SZSB','深證B指','China'),('^N225','Nikkei 225','Japan'),('^HSI','Hang Seng','Hong Kong'),('^AORD','ALL ORDINARIES','Australia'),('^NZ50','NZX 50 INDEX GROSS','New Zealand'),('^STI','STRAITS TIMES INDEX','Singapore'),('^KS11','KOSPI Composite Index','South Korea'),('^KLSE','FTSE Bursa Malaysia KLCI','Malaysia'),('^JKSE','Composite Index','Indonesia'),('^BSESN','S&P BSE SENSEX','India');
+/*!40000 ALTER TABLE `idx` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `idx_dd`
+--
+
+DROP TABLE IF EXISTS `idx_dd`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `idx_dd` (
+  `DDate` date NOT NULL,
+  `Index_ID` varchar(10) NOT NULL,
+  `SOpen` double NOT NULL,
+  `SHigh` double NOT NULL,
+  `SLow` double NOT NULL,
+  `SClose` double NOT NULL,
+  `TShare` double NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `idx_dd`
+--
+
+LOCK TABLES `idx_dd` WRITE;
+/*!40000 ALTER TABLE `idx_dd` DISABLE KEYS */;
+/*!40000 ALTER TABLE `idx_dd` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `idx_mm`
+--
+
+DROP TABLE IF EXISTS `idx_mm`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `idx_mm` (
+  `DDate` date NOT NULL,
+  `Index_ID` varchar(10) NOT NULL,
+  `SOpen` double NOT NULL,
+  `SHigh` double NOT NULL,
+  `SLow` double NOT NULL,
+  `SClose` double NOT NULL,
+  `TShare` double NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `idx_mm`
+--
+
+LOCK TABLES `idx_mm` WRITE;
+/*!40000 ALTER TABLE `idx_mm` DISABLE KEYS */;
+/*!40000 ALTER TABLE `idx_mm` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `idx_ww`
+--
+
+DROP TABLE IF EXISTS `idx_ww`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `idx_ww` (
+  `DDate` date NOT NULL,
+  `Index_ID` varchar(10) NOT NULL,
+  `SOpen` double NOT NULL,
+  `SHigh` double NOT NULL,
+  `SLow` double NOT NULL,
+  `SClose` double NOT NULL,
+  `TShare` double NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `idx_ww`
+--
+
+LOCK TABLES `idx_ww` WRITE;
+/*!40000 ALTER TABLE `idx_ww` DISABLE KEYS */;
+/*!40000 ALTER TABLE `idx_ww` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `nasdaq100`
@@ -153,4 +258,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-06-13 23:19:19
+-- Dump completed on 2017-06-20 18:13:36

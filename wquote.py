@@ -3,9 +3,11 @@
 import argparse
 import logging
 import sys
+
+from db_config import db_config
 from commands.list import List
 from commands.update import Update
-from db_config import db_config
+from commands.update_idx import UpdateIdx
 
 def _list(args):
     ''''''
@@ -15,6 +17,11 @@ def _list(args):
 def _update(args):
     ''''''
     cmd = Update(args, db_config)
+    cmd()
+    
+def _update_idx(args):
+    ''''''
+    cmd  = UpdateIdx(args,db_config)
     cmd()
     
 if __name__ == '__main__':
@@ -55,26 +62,40 @@ if __name__ == '__main__':
                         default=False)
     list_parser.set_defaults(func=_list)
 
-    #-> [update] command arguments
-    update_parser = subparsers.add_parser(
-        'update',
-        help='update twse exchange data',
-        parents=[base_parser])
-    ex_group = update_parser.add_mutually_exclusive_group()
+    #-> duration_parser
+    duration_parser = argparse.ArgumentParser(add_help=False)
+    ex_group = duration_parser.add_mutually_exclusive_group()
     ex_group.add_argument('--period', 
                         help='update period: (<n>d | <n>w | <n>m | <n>y)')
     ex_group.add_argument('--until_now',
                         action='store_true',
                         help='update since last time updated to now',
                         default=False)
-    update_parser.add_argument('--interval',
+    duration_parser.add_argument('--interval',
                         help="1d, 1wk, or 1mo, default: %(default)s",
                         default='1d')
+
+    #-> [update] command arguments
+    update_parser = subparsers.add_parser(
+        'update',
+        help='update yahoo financial stock exchange data',
+        parents=[base_parser,duration_parser])
+    update_parser.set_defaults(func=_update)
     update_parser.add_argument('--quote_id',
                                help="target market (sp500,nasdaq100,idx,all) or company id")
-    update_parser.set_defaults(func=_update)
+
     
     
+    #-> [update] command arguments
+    update_idx_parser = subparsers.add_parser(
+        'update_idx',
+        help='update yahoo financial idx exchange data',
+        parents=[base_parser,duration_parser])
+    update_idx_parser.set_defaults(func=_update_idx)
+    update_idx_parser.add_argument('--quote_id',
+                               help="idx id or all")
+
+
     args = parser.parse_args()
     print(args)
     if args.debug:

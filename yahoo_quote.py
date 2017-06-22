@@ -32,7 +32,7 @@ class YahooQuote(object):
             self.logger.debug('result file output file %s' % os.path.join(self.output,ticker + '.csv'))
             return quotes
         except urllib.error.HTTPError:
-            self.logger.error('get_quote HTTP ERROR', exc_info=True)
+            self.logger.error('get_quote HTTP ERROR')
             return None
         except:
             self.logger.error('ticker %s quote not found from yahoo' % ticker, exc_info=True)

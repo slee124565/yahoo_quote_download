@@ -62,6 +62,28 @@ class Update(object):
     def _get_yahoo_quote(self):
         self.yahoo_quote = YahooQuote(logger=self.logger)
     
+    def _get_until_now_start_date(self,q_table,ticker):
+        ''''''
+        if self.args.until_now:
+            sql = "select * from %s where StockID = '%s' order by DDate desc" % (
+                q_table, ticker)
+            with self.conn.cursor() as cursor:
+                self.logger.debug('sql cmd: %s' % sql)
+                cursor.execute(sql)
+                query_set = cursor.fetchone()
+                self.logger.debug('query_set type %s, %s' % (type(query_set),str(query_set)))
+                if query_set is None:
+                    if self.args.interval == '1d':
+                        start_date = self.end_date - relativedelta(years=3,months=6)
+                    else:
+                        start_date = self.end_date - relativedelta(years=5)
+                    start_date = start_date.date()
+                else:
+                    start_date = query_set['DDate']
+            return start_date
+        else:
+            raise
+        
     def _get_period_start_date(self):
         ''''''
         if self.args.period:
@@ -89,9 +111,7 @@ class Update(object):
         self.start_date = start_date
         return start_date
         
-    def _quote_update_process(self):
-        ''''''
-        #-> args.interval: 1d, 1wk, 1mo
+    def _get_target_table(self):
         if not self.args.interval in ['1d','1wk','1mo']:
             self.logger.error('update args [interval] error')
             sys.exit(1)
@@ -105,103 +125,76 @@ class Update(object):
             self.logger.error('unknow args [interval] %s' % self.args.interval)
             raise
         self.logger.debug('quote update with q_table: %s' % q_table)
-        
-        for entry in self.quote_id_list:
-            if type(entry) == list:
-                ticker,name = entry
-            else:
-                ticker = entry
-                name = ''
-            self.logger.debug('update %s %s ...' % (ticker,name))
-            
-            start_date = self.end_date
-            if self.args.until_now:
-                sql = "select * from %s where StockID = '%s' order by DDate desc" % (
-                    q_table, ticker)
-                with self.conn.cursor() as cursor:
-                    self.logger.debug('sql cmd: %s' % sql)
-                    cursor.execute(sql)
-                    query_set = cursor.fetchone()
-                    self.logger.debug('query_set type %s, %s' % (type(query_set),str(query_set)))
-                    if query_set is None:
-                        if self.args.interval == '1d':
-                            start_date = self.end_date - relativedelta(years=3,months=6)
-                        else:
-                            start_date = self.end_date - relativedelta(years=5)
-                        start_date = start_date.date()
-                    else:
-                        start_date = query_set['DDate']
-                        
-            if self.args.period:
-                start_date = self._get_period_start_date()
+        return q_table
+    
+    def _update_ticker_quote_to_db(self,ticker, q_table, date_quote):
+        ''''''
+        if date_quote.strip() != '':
+            self.logger.debug(date_quote)
+            columns = date_quote.split(',')
+            if len(columns) == 7:
+                t_date,t_open,t_high,t_low,t_close,_,t_volume = columns
+                try:
+                    _ = [float(x) for x in columns[1:]]
+                    t_date = datetime.strptime(t_date,'%Y-%m-%d')
+                    t_open,t_high,t_low,t_close = ['{:.2f}'.format(float(x)) for x in columns[1:-2]]
+                except:
+                    self.logger.error('ticker %s quote %s update exception, skip!' % (ticker,date_quote),
+                                      exc_info=True)
+                    return False
 
-            self.logger.debug('== upate (%s, %s) period (%s, %s, %s) ==' % (ticker, name,
-                                                        start_date.strftime('%Y%m%d'),
-                                                        self.end_date.strftime('%Y%m%d'),
-                                                        self.args.interval))
-            quotes = self.yahoo_quote.get_quote(ticker, 
-                                       start_date.strftime('%Y%m%d'), 
-                                       self.end_date.strftime('%Y%m%d'),
-                                       self.args.interval)
-            if quotes is None:
-                self.logger.warning('yahoo_quote.get_quote for ticker %s, skip to next' % ticker)
-                continue
-                   
-            self.logger.debug('yahoo_quote get row count %s' % (len(quotes)))
-            self.logger.debug('titles: %s' % quotes[0])
-            counter = 0
-            for date_quote in quotes[1:]:
-                if date_quote.strip() != '':
-                    self.logger.debug(date_quote)
-                    columns = date_quote.split(',')
-                    if len(columns) == 7:
-                        t_date,t_open,t_high,t_low,t_close,_,t_volume = columns
-                        try:
-                            _ = [float(x) for x in columns[1:]]
-                            t_date = datetime.strptime(t_date,'%Y-%m-%d')
-                            t_open,t_high,t_low,t_close = ['{:.2f}'.format(float(x)) for x in columns[1:-2]]
-                        except:
-                            self.logger.error('ticker %s quote %s update exception, skip!' % (ticker,date_quote),
-                                              exc_info=True)
-                            continue
-                        sql = "select count(*) from %s where DDate = '%s' and StockID = '%s'" % (
-                            q_table,t_date,ticker)
-                        with self.conn.cursor() as cursor:
-                            cursor.execute(sql)
-                            count_query = cursor.fetchone()['count(*)']
-                            self.logger.debug('count_query %s' % count_query)
-                            if count_query > 1:
-                                self.logger.warning('duplicate row data for (%s %s)' % (ticker, t_date))
-                            if count_query == 0:
-                                if q_table == 'usastock_dd':
-                                    sql = "insert into %s values ('%s','%s',%s,%s,%s,%s,%s)" % (
-                                        q_table,t_date,ticker,t_open,t_high,t_low,t_close,t_volume )
-                                else:
-                                    sql = "insert into %s values ('%s','%s',%s,%s,%s,%s)" % (
-                                        q_table,t_date,ticker,t_open,t_high,t_low,t_close )                                        
-                            else:
-                                if q_table == 'usastock_dd':
-                                    sql = "update %s set SOpen = %s, SHigh = %s, \
+                sql = "select count(*) from %s where DDate = '%s' and StockID = '%s'" % (
+                    q_table,t_date,ticker)
+                with self.conn.cursor() as cursor:
+                    cursor.execute(sql)
+                    count_query = cursor.fetchone()['count(*)']
+                    self.logger.debug('count_query %s' % count_query)
+                    if count_query > 1:
+                        self.logger.warning('duplicate row data for (%s %s)' % (ticker, t_date))
+                    if count_query == 0:
+                        if q_table == 'usastock_dd':
+                            sql = "insert into %s values ('%s','%s',%s,%s,%s,%s,%s)" % (
+                                q_table,t_date,ticker,t_open,t_high,t_low,t_close,t_volume )
+                        else:
+                            sql = "insert into %s values ('%s','%s',%s,%s,%s,%s)" % (
+                                q_table,t_date,ticker,t_open,t_high,t_low,t_close )                                        
+                    else:
+                        if q_table == 'usastock_dd':
+                            sql = "update %s set SOpen = %s, SHigh = %s, \
 SLow = %s, SClose = %s, TShare = %s \
 where DDate = '%s' and StockID = '%s'" % (
-                                                q_table,t_open,t_high,t_low,t_close,t_volume,
-                                                t_date,ticker)
-                                else:
-                                    sql = "update %s set SOpen = %s, SHigh = %s, \
+                                        q_table,t_open,t_high,t_low,t_close,t_volume,
+                                        t_date,ticker)
+                        else:
+                            sql = "update %s set SOpen = %s, SHigh = %s, \
 SLow = %s, SClose = %s \
 where DDate = '%s' and StockID = '%s'" % (
-                                                q_table,t_open,t_high,t_low,t_close,
-                                                t_date,ticker)
-                            self.logger.debug(sql)
-                            cursor.execute(sql)
-                            self.conn.commit()
-                            counter += 1
-            self.logger.info('== [%s, %s] update (%s,%s) with count %s done ==' % (
-                ticker,name,
-                start_date.strftime('%Y%m%d'),self.end_date.strftime('%Y%m%d'),
-                counter
-                ))
-                
+                                        q_table,t_open,t_high,t_low,t_close,
+                                        t_date,ticker)
+                    self.logger.debug(sql)
+                    cursor.execute(sql)
+                    self.conn.commit()
+                    return True
+        return False
+
+    def _ticker_validate(self,ticker):
+        ''''''
+        tables = ['nasdaq100','sp500']
+        for t_table in tables:
+            sql = "select count(*) from %s where SecID = '%s'" % (t_table,ticker)
+            with self.conn.cursor() as cursor:
+                cursor.execute(sql)
+                count_query = cursor.fetchone()['count(*)']
+                self.logger.debug('ticker count query %s' % count_query)
+                if count_query == 1:
+                    return True
+                elif count_query > 1:
+                    self.logger.warning('ticker %s has multiple entries in %s' % (ticker,t_table))
+                    return True
+        self.logger.warning('ticker %s validate Fail' % ticker)
+        return False
+        
+                    
     def __call__(self):
         ''''''
         try:
@@ -215,10 +208,52 @@ where DDate = '%s' and StockID = '%s'" % (
 
             #-> start update quote
             self._get_yahoo_quote()
-#             yahoo_quote = YahooQuote(logger=self.logger)
 
             #-> start update_process
-            self._quote_update_process()
+
+            q_table = self._get_target_table()
+            
+            for entry in self.quote_id_list:
+                if type(entry) == list:
+                    ticker,name = entry
+                else:
+                    ticker = entry
+                    name = ''
+                    
+                if self._ticker_validate(ticker):
+                    self.logger.debug('update %s %s ...' % (ticker,name))
+                    
+                    start_date = self.end_date
+                    
+                    if self.args.until_now:
+                        start_date = self._get_until_now_start_date(q_table,ticker)
+    
+                    if self.args.period:
+                        start_date = self._get_period_start_date()
+        
+                    self.logger.debug('== upate (%s, %s) period (%s, %s, %s) ==' % (ticker, name,
+                                                                start_date.strftime('%Y%m%d'),
+                                                                self.end_date.strftime('%Y%m%d'),
+                                                                self.args.interval))
+                    quotes = self.yahoo_quote.get_quote(ticker, 
+                                               start_date.strftime('%Y%m%d'), 
+                                               self.end_date.strftime('%Y%m%d'),
+                                               self.args.interval)
+                    if quotes is None:
+                        self.logger.warning('yahoo_quote.get_quote for ticker %s, skip to next' % ticker)
+                        continue
+                           
+                    self.logger.debug('yahoo_quote get row count %s' % (len(quotes)))
+                    self.logger.debug('titles: %s' % quotes[0])
+                    counter = 0
+                    for date_quote in quotes[1:]:
+                        if self._update_ticker_quote_to_db(ticker,q_table,date_quote):
+                            counter += 1
+                    self.logger.info('== [%s, %s] update (%s,%s) with count %s done ==' % (
+                        ticker,name,
+                        start_date.strftime('%Y%m%d'),self.end_date.strftime('%Y%m%d'),
+                        counter
+                        ))
             
         except:
             self.logger.error('%s command exception' % self.__class__.__name__, 

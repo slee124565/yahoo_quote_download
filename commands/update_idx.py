@@ -67,9 +67,11 @@ class UpdateIdx(Update):
 
     def _ticker_validate(self,ticker):
         ''''''
+        return True
         tables = ['idx']
         for t_table in tables:
             sql = "select count(*) from %s where Index_ID = '%s'" % (t_table,ticker)
+            self.logger.debug('sql: %s' % sql)
             with self.conn.cursor() as cursor:
                 cursor.execute(sql)
                 count_query = cursor.fetchone()['count(*)']

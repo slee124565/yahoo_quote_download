@@ -23,6 +23,10 @@ class UpdateIdx(Update):
                     quote_id_list.append([row['Index_ID'],row['Index_name']])
         if 'all' in quote_id_list:
             quote_id_list.remove('all')
+            
+        for n in range(len(quote_id_list)):
+            if quote_id_list[n][0] != '^':
+                quote_id_list[n] = '^' + quote_id_list[n]
 
         self.logger.debug('quote_id_list final: %s' % str(quote_id_list))
         self.quote_id_list = quote_id_list
@@ -67,7 +71,6 @@ class UpdateIdx(Update):
 
     def _ticker_validate(self,ticker):
         ''''''
-        return True
         tables = ['idx']
         for t_table in tables:
             sql = "select count(*) from %s where Index_ID = '%s'" % (t_table,ticker)

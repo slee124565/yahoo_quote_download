@@ -24,9 +24,9 @@ class UpdateIdx(Update):
         if 'all' in quote_id_list:
             quote_id_list.remove('all')
             
-        for n in range(len(quote_id_list)):
-            if quote_id_list[n][0] != '^':
-                quote_id_list[n] = '^' + quote_id_list[n]
+#         for n in range(len(quote_id_list)):
+#             if quote_id_list[n][0] != '^':
+#                 quote_id_list[n] = '^' + quote_id_list[n]
 
         self.logger.debug('quote_id_list final: %s' % str(quote_id_list))
         self.quote_id_list = quote_id_list

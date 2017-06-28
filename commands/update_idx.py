@@ -46,7 +46,7 @@ class UpdateIdx(Update):
     def _get_until_now_start_date(self,q_table,ticker):
         ''''''
         if self.args.until_now:
-            sql = "select * from %s where Index_ID = '%s' order by DDate desc" % (
+            sql = "select * from %s where Index_ID = '%s' order by DDate desc limit 1" % (
                 q_table, ticker)
             with self.conn.cursor() as cursor:
                 self.logger.debug('sql cmd: %s' % sql)

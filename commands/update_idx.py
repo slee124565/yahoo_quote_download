@@ -23,7 +23,8 @@ class UpdateIdx(Update):
                     quote_id_list.append([row['Index_ID'],row['Index_name']])
         if 'all' in quote_id_list:
             quote_id_list.remove('all')
-
+        
+        quote_id_list.sort()
         self.logger.debug('quote_id_list final: %s' % str(quote_id_list))
         self.quote_id_list = quote_id_list
 

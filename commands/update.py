@@ -56,6 +56,7 @@ class Update(object):
             quote_id_list.remove('nasdaq100')
         if 'all' in quote_id_list:
             quote_id_list.remove('all')
+        quote_id_list.sort()
         self.logger.debug('quote_id_list final: %s' % str(quote_id_list))
         self.quote_id_list = quote_id_list
         
@@ -213,6 +214,8 @@ where DDate = '%s' and StockID = '%s'" % (
 
             q_table = self._get_target_table()
             
+            quote_fail_list = []
+            
             for entry in self.quote_id_list:
                 if type(entry) == list:
                     ticker,name = entry
@@ -241,6 +244,7 @@ where DDate = '%s' and StockID = '%s'" % (
                                                self.args.interval)
                     if quotes is None:
                         self.logger.warning('yahoo_quote.get_quote for ticker %s, skip to next' % ticker)
+                        quote_fail_list.append(ticker)
                         continue
                            
                     self.logger.debug('yahoo_quote get row count %s' % (len(quotes)))
@@ -259,4 +263,6 @@ where DDate = '%s' and StockID = '%s'" % (
             self.logger.error('%s command exception' % self.__class__.__name__, 
                               exc_info=True)
         finally:
+            quote_fail_list.sort()
+            self.logger.info('quote fail list: %s' % quote_fail_list)
             self.conn.close()

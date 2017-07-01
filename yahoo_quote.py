@@ -33,6 +33,8 @@ class YahooQuote(object):
             return quotes
         except urllib.error.HTTPError:
             self.logger.error('get_quote HTTP ERROR')
+            self.logger.info('refreshing yahoo cookie crumb')
+            yqd._get_cookie_crumb()
             return None
         except:
             self.logger.error('ticker %s quote not found from yahoo' % ticker, exc_info=True)

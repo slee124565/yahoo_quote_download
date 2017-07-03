@@ -35,9 +35,10 @@ class YahooQuote(object):
             self.logger.error('get_quote HTTP ERROR')
             self.logger.info('refreshing yahoo cookie crumb')
             yqd._get_cookie_crumb()
-            return None
+            raise
         except:
             self.logger.error('ticker %s quote not found from yahoo' % ticker, exc_info=True)
+            raise
 
 if __name__ == '__main__':  # noqa
     import argparse

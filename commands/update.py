@@ -238,14 +238,19 @@ where DDate = '%s' and StockID = '%s'" % (
                                                                 start_date.strftime('%Y%m%d'),
                                                                 self.end_date.strftime('%Y%m%d'),
                                                                 self.args.interval))
-                    quotes = self.yahoo_quote.get_quote(ticker, 
+                    try:
+                        quotes = self.yahoo_quote.get_quote(ticker, 
                                                start_date.strftime('%Y%m%d'), 
                                                self.end_date.strftime('%Y%m%d'),
                                                self.args.interval)
-                    if quotes is None:
-                        self.logger.warning('yahoo_quote.get_quote for ticker %s, skip to next' % ticker)
+                    except:
+                        self.logger.warning('yahoo_quote for ticker %s fail, skip to next' % ticker)
                         quote_fail_list.append(ticker)
                         continue
+#                     if quotes is None:
+#                         self.logger.warning('yahoo_quote.get_quote for ticker %s, skip to next' % ticker)
+#                         quote_fail_list.append(ticker)
+#                         continue
                            
                     self.logger.debug('yahoo_quote get row count %s' % (len(quotes)))
                     self.logger.debug('titles: %s' % quotes[0])

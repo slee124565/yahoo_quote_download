@@ -42,7 +42,7 @@ class Update(object):
                 rows = cursor.fetchall()
                 for row in rows:
                     quote_id_list.append([row['SecID'],row['SecName']])
-        elif 'nasdaq100' in quote_id_list or 'all' in quote_id_list:
+        if 'nasdaq100' in quote_id_list or 'all' in quote_id_list:
             with self.conn.cursor() as cursor:
                 sql = "select SecID, SecName from nasdaq100;"
                 cursor.execute(sql)
@@ -57,7 +57,9 @@ class Update(object):
         if 'all' in quote_id_list:
             quote_id_list.remove('all')
         quote_id_list.sort()
-        self.logger.debug('quote_id_list final: %s' % str(quote_id_list))
+        self.logger.debug('quote_id_list final:')
+        for entry in quote_id_list:
+            self.logger.debug('%s' % entry)
         self.quote_id_list = quote_id_list
         
     def _get_yahoo_quote(self):

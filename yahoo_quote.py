@@ -7,6 +7,9 @@ import os
 from six.moves import urllib
 from retrying import retry
 
+def retry_if_http_error(exception):
+    return isinstance(exception, urllib.error.HTTPError)
+
 class YahooQuote(object):
     
     def __init__(self,logger=None):
@@ -17,7 +20,7 @@ class YahooQuote(object):
             self.logger.info('output folder %s not exist, create' % self.output)
             os.mkdir(self.output)
         
-    @retry(stop_max_attempt_number=5,wait_fixed=2000)
+    @retry(retry_on_exception=retry_if_http_error, stop_max_attempt_number=5,wait_fixed=2000)
     def get_quote(self,ticker,start_date,end_date,interval='1d'):
         try:
             quotes = yqd.load_yahoo_quote(ticker=ticker, 
@@ -35,7 +38,7 @@ class YahooQuote(object):
             self.logger.error('get_quote HTTP ERROR')
             self.logger.info('refreshing yahoo cookie crumb')
             yqd._get_cookie_crumb()
-            raise
+            raise urllib.error.HTTPError
         except:
             self.logger.error('ticker %s quote not found from yahoo' % ticker, exc_info=True)
             raise

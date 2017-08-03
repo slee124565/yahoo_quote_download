@@ -245,6 +245,9 @@ where DDate = '%s' and StockID = '%s'" % (
                                                start_date.strftime('%Y%m%d'), 
                                                self.end_date.strftime('%Y%m%d'),
                                                self.args.interval)
+                    except KeyboardInterrupt:
+                        self.logger.error('KeyboardInterrupt event, stop process')
+                        break
                     except:
                         self.logger.warning('yahoo_quote for ticker %s fail, skip to next' % ticker)
                         quote_fail_list.append(ticker)

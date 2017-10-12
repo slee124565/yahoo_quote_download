@@ -56,6 +56,7 @@ class Update(object):
             quote_id_list.remove('nasdaq100')
         if 'all' in quote_id_list:
             quote_id_list.remove('all')
+        quote_id_list = list(set(quote_id_list))
         quote_id_list.sort()
         self.logger.debug('quote_id_list final:')
         for entry in quote_id_list:

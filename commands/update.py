@@ -56,7 +56,7 @@ class Update(object):
             quote_id_list.remove('nasdaq100')
         if 'all' in quote_id_list:
             quote_id_list.remove('all')
-        quote_id_list = list(set(quote_id_list))
+        self.logger.debug('db initi quote_id_list count %s ' % len(quote_id_list))
         quote_id_list.sort()
         self.logger.debug('quote_id_list final:')
         for entry in quote_id_list:
@@ -201,6 +201,8 @@ where DDate = '%s' and StockID = '%s'" % (
                     
     def __call__(self):
         ''''''
+        quote_fail_list = []
+
         try:
             self._get_db_conn()
 
@@ -217,7 +219,7 @@ where DDate = '%s' and StockID = '%s'" % (
 
             q_table = self._get_target_table()
             
-            quote_fail_list = []
+            t_ticker_done_list = []
             
             for entry in self.quote_id_list:
                 if type(entry) == list:
@@ -227,48 +229,53 @@ where DDate = '%s' and StockID = '%s'" % (
                     name = ''
                     
                 if self._ticker_validate(ticker):
-                    self.logger.debug('update %s %s ...' % (ticker,name))
-                    
-                    start_date = self.end_date
-                    
-                    if self.args.until_now:
-                        start_date = self._get_until_now_start_date(q_table,ticker)
-    
-                    if self.args.period:
-                        start_date = self._get_period_start_date()
+                    if ticker in t_ticker_done_list:
+                        self.logger.warning('ticker %s already be quoted' % ticker)
+                    else:
+                        self.logger.debug('update %s %s ...' % (ticker,name))
+                        
+                        start_date = self.end_date
+                        
+                        if self.args.until_now:
+                            start_date = self._get_until_now_start_date(q_table,ticker)
         
-                    self.logger.debug('== upate (%s, %s) period (%s, %s, %s) ==' % (ticker, name,
-                                                                start_date.strftime('%Y%m%d'),
-                                                                self.end_date.strftime('%Y%m%d'),
-                                                                self.args.interval))
-                    try:
-                        quotes = self.yahoo_quote.get_quote(ticker, 
-                                               start_date.strftime('%Y%m%d'), 
-                                               self.end_date.strftime('%Y%m%d'),
-                                               self.args.interval)
-                    except KeyboardInterrupt:
-                        self.logger.error('KeyboardInterrupt event, stop process')
-                        break
-                    except:
-                        self.logger.warning('yahoo_quote for ticker %s fail, skip to next' % ticker)
-                        quote_fail_list.append(ticker)
-                        continue
-#                     if quotes is None:
-#                         self.logger.warning('yahoo_quote.get_quote for ticker %s, skip to next' % ticker)
-#                         quote_fail_list.append(ticker)
-#                         continue
-                           
-                    self.logger.debug('yahoo_quote get row count %s' % (len(quotes)))
-                    self.logger.debug('titles: %s' % quotes[0])
-                    counter = 0
-                    for date_quote in quotes[1:]:
-                        if self._update_ticker_quote_to_db(ticker,q_table,date_quote):
-                            counter += 1
-                    self.logger.info('== [%s, %s] update (%s,%s) with count %s done ==' % (
-                        ticker,name,
-                        start_date.strftime('%Y%m%d'),self.end_date.strftime('%Y%m%d'),
-                        counter
-                        ))
+                        if self.args.period:
+                            start_date = self._get_period_start_date()
+            
+                        self.logger.debug('== upate (%s, %s) period (%s, %s, %s) ==' % (ticker, name,
+                                                                    start_date.strftime('%Y%m%d'),
+                                                                    self.end_date.strftime('%Y%m%d'),
+                                                                    self.args.interval))
+                        try:
+                            quotes = self.yahoo_quote.get_quote(ticker, 
+                                                   start_date.strftime('%Y%m%d'), 
+                                                   self.end_date.strftime('%Y%m%d'),
+                                                   self.args.interval)
+                        except KeyboardInterrupt:
+                            self.logger.error('KeyboardInterrupt event, stop process')
+                            break
+                        except:
+                            self.logger.warning('yahoo_quote for ticker %s fail, skip to next' % ticker)
+                            quote_fail_list.append(ticker)
+                            continue
+                        
+                        #if quotes is None:
+                        #    self.logger.warning('yahoo_quote.get_quote for ticker %s, skip to next' % ticker)
+                        #    quote_fail_list.append(ticker)
+                        #    continue
+                               
+                        self.logger.debug('yahoo_quote get row count %s' % (len(quotes)))
+                        self.logger.debug('titles: %s' % quotes[0])
+                        counter = 0
+                        for date_quote in quotes[1:]:
+                            if self._update_ticker_quote_to_db(ticker,q_table,date_quote):
+                                counter += 1
+                        self.logger.info('== [%s, %s] update (%s,%s) with count %s done ==' % (
+                            ticker,name,
+                            start_date.strftime('%Y%m%d'),self.end_date.strftime('%Y%m%d'),
+                            counter
+                            ))
+                        t_ticker_done_list.append(ticker)
             
         except:
             self.logger.error('%s command exception' % self.__class__.__name__, 
@@ -276,4 +283,5 @@ where DDate = '%s' and StockID = '%s'" % (
         finally:
             quote_fail_list.sort()
             self.logger.info('quote fail list: %s' % quote_fail_list)
-            self.conn.close()
+            if self.conn:
+                self.conn.close()

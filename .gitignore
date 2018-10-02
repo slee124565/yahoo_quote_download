@@ -4,3 +4,4 @@ csv
 **/*.pyc
 db_config.py
 .settings/*
+.idea/

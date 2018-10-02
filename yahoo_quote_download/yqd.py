@@ -26,6 +26,9 @@ These download links uses a "crumb" for authentication with a cookie "B".
 This code is provided to obtain such matching cookie and crumb.
 '''
 
+import logging
+logger = logging.getLogger(__name__)
+
 # Build the cookie handler
 cookier = urllib.request.HTTPCookieProcessor()
 opener = urllib.request.build_opener(cookier)
@@ -95,6 +98,7 @@ def load_yahoo_quote(ticker, begindate, enddate, interval='1d', info = 'quote'):
 	params = urllib.parse.urlencode(param)
 	url = 'https://query1.finance.yahoo.com/v7/finance/download/{}?{}'.format(ticker, params)
 	print(url)
+	logger.debug(url)
 
 	# Perform the query
 	# There is no need to enter the cookie here, as it is automatically handled by opener

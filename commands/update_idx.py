@@ -95,9 +95,19 @@ class UpdateIdx(Update):
                     _ = [float(x) for x in columns[1:]]
                     t_date = datetime.strptime(t_date,'%Y-%m-%d')
                     t_open,t_high,t_low,t_close = ['{:.2f}'.format(float(x)) for x in columns[1:-2]]
+
+                    if q_table == 'idx_ww' and t_date.weekday() != 0:
+                        self.logger.warning('ticker {} quote {} weekday {} error for {}'.format(
+                            ticker, date_quote, t_date.weekday(), q_table
+                        ))
+                        return False
+                    if q_table == 'idx_mm' and t_date.day != 1:
+                        self.logger.warning('ticker {} quote {} day number {} error for {}'.format(
+                            ticker, date_quote, t_date.day, q_table
+                        ))
+                        return False
                 except:
-                    self.logger.error('ticker %s quote %s update exception, skip!' % (ticker,date_quote),
-                                      exc_info=True)
+                    self.logger.error('ticker %s quote %s update exception, skip!' % (ticker,date_quote))
                     return False
 
                 sql = "select count(*) from %s where DDate = '%s' and Index_ID = '%s'" % (

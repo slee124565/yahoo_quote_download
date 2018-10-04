@@ -154,7 +154,7 @@ class Update(object):
                         return False
                 except:
                     self.logger.error('ticker %s quote %s update exception, skip!' % (
-                        ticker, date_quote), exc_info=True)
+                        ticker, date_quote))
                     return False
 
                 sql = "select count(*) from %s where DDate = '%s' and StockID = '%s'" % (

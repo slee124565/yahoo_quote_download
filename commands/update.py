@@ -66,7 +66,7 @@ class Update(object):
     def _get_yahoo_quote(self):
         self.yahoo_quote = YahooQuote(logger=self.logger)
     
-    def _get_until_now_start_date(self,q_table,ticker):
+    def _get_until_now_start_date(self, q_table, ticker):
         """"""
         if self.args.until_now:
             sql = "select * from %s where StockID = '%s' order by DDate desc limit 1" % (
@@ -78,7 +78,7 @@ class Update(object):
                 self.logger.debug('query_set type %s, %s' % (type(query_set), str(query_set)))
                 if query_set is None:
                     if self.args.interval == '1d':
-                        start_date = self.end_date - relativedelta(years=3,months=6)
+                        start_date = self.end_date - relativedelta(years=3, months=6)
                     else:
                         start_date = self.end_date - relativedelta(years=5)
                     start_date = start_date.date()
@@ -142,16 +142,17 @@ class Update(object):
                     _ = [float(x) for x in columns[1:]]
                     t_date = datetime.strptime(t_date, '%Y-%m-%d')
                     t_open, t_high, t_low, t_close = ['{:.2f}'.format(float(x)) for x in columns[1:-2]]
-                    if q_table == 'usastock_ww' and t_date.weekday() != 0:
-                        self.logger.warning('ticker {} quote {} weekday {} error for {}'.format(
-                            ticker, date_quote, t_date.weekday(), q_table
-                        ))
-                        return False
-                    if q_table == 'usastock_mm' and t_date.day != 1:
-                        self.logger.warning('ticker {} quote {} day number {} error for {}'.format(
-                            ticker, date_quote, t_date.day, q_table
-                        ))
-                        return False
+
+                    # if q_table == 'usastock_ww' and t_date.weekday() != 0:
+                    #     self.logger.warning('ticker {} quote {} weekday {} error for {}'.format(
+                    #         ticker, date_quote, t_date.weekday(), q_table
+                    #     ))
+                    #     return False
+                    # if q_table == 'usastock_mm' and t_date.day != 1:
+                    #     self.logger.warning('ticker {} quote {} day number {} error for {}'.format(
+                    #         ticker, date_quote, t_date.day, q_table
+                    #     ))
+                    #     return False
                 except:
                     self.logger.error('ticker %s quote %s update exception, skip!' % (
                         ticker, date_quote))
@@ -208,6 +209,15 @@ where DDate = '%s' and StockID = '%s'" % (
         self.logger.warning('ticker %s validate Fail' % ticker)
         return False
 
+    @staticmethod
+    def _is_last_day_of_month(date_check):
+        try:
+            from datetime import timedelta
+            if (date_check + timedelta(days=+1)).day == 1:
+                return True
+        finally:
+            return False
+
     def __call__(self):
         """"""
         quote_fail_list = []
@@ -246,7 +256,7 @@ where DDate = '%s' and StockID = '%s'" % (
                         start_date = self.end_date
                         
                         if self.args.until_now:
-                            start_date = self._get_until_now_start_date(q_table,ticker)
+                            start_date = self._get_until_now_start_date(q_table, ticker)
         
                         if self.args.period:
                             start_date = self._get_period_start_date()
@@ -268,23 +278,73 @@ where DDate = '%s' and StockID = '%s'" % (
                             quote_fail_list.append(ticker)
                             continue
                         
-                        #if quotes is None:
+                        # if quotes is None:
                         #    self.logger.warning('yahoo_quote.get_quote for ticker %s, skip to next' % ticker)
                         #    quote_fail_list.append(ticker)
                         #    continue
                                
                         self.logger.debug('yahoo_quote get row count %s' % (len(quotes)))
                         self.logger.debug('titles: %s' % quotes[0])
-                        counter = 0
-                        for date_quote in quotes[1:]:
-                            if self._update_ticker_quote_to_db(ticker,q_table,date_quote):
-                                counter += 1
-                        self.logger.info('== [%s, %s] update (%s,%s) with count %s done ==' % (
-                            ticker,name,
-                            start_date.strftime('%Y%m%d'),self.end_date.strftime('%Y%m%d'),
-                            counter
-                            ))
-                        t_ticker_done_list.append(ticker)
+                        date_end = date_check = None
+                        idx_end = idx_check = None
+                        idx = len(quotes) - 1
+                        while idx > 0:
+                            idx_date = quotes[idx].split(',')[0]
+                            try:
+                                idx_date = datetime.strptime(idx_date, '%Y-%m-%d')
+                                if date_end is None:
+                                    date_end = idx_date
+                                    idx_end = idx
+                                else:
+                                    date_check = idx_date
+                                    idx_check = idx
+                                    break
+                            except:
+                                self.logger.debug('idx check value error for quote {}'.format(
+                                    quotes[idx]
+                                ))
+                                pass
+                            finally:
+                                idx -= 1
+
+                        if date_end and date_check:
+                            if q_table in ['usastock_ww', 'idx_ww']:
+                                if date_end.weekday() != date_check.weekday():
+                                    self.logger.warning(
+                                        'ticker {} last two quotes \n{} \n{} \ndate.day diff '
+                                        'found, skip last quote {}'.format(
+                                            ticker, quotes[idx_check], quotes[idx_end], quotes[idx_end]))
+                                    del quotes[idx_end]
+                            if q_table in ['usastock_mm', 'idx_mm']:
+                                if date_check.day == 1 and date_end.day != date_check.day:
+                                    self.logger.warning(
+                                        'ticker {} last two quotes \n{} \n{} \ndate.day diff '
+                                        'found, skip last quote {}'.format(
+                                            ticker, quotes[idx_check], quotes[idx_end], quotes[idx_end]))
+                                    del quotes[idx_end]
+                                else:
+                                    if not self._is_last_day_of_month(date_end):
+                                        self.logger.warning(
+                                            'ticker {} last two quotes \n{} \n{} \ndate.day diff '
+                                            'found, skip last quote {}'.format(
+                                                ticker, quotes[idx_check], quotes[idx_end], quotes[idx_end]))
+                                        del quotes[idx_end]
+
+                            counter = 0
+                            for date_quote in quotes[1:]:
+                                if self._update_ticker_quote_to_db(ticker, q_table, date_quote):
+                                    counter += 1
+                            self.logger.info('== [%s, %s] update (%s,%s) with count %s done ==' % (
+                                ticker, name,
+                                start_date.strftime('%Y%m%d'), self.end_date.strftime('%Y%m%d'),
+                                counter
+                                ))
+                            t_ticker_done_list.append(ticker)
+                        else:
+                            self.logger.warning('ticker {} quotes not enough to check date end')
+                            quote_fail_list.append(ticker)
+                            continue
+
         except:
             self.logger.error('%s command exception' % self.__class__.__name__, 
                               exc_info=True)

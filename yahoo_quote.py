@@ -20,9 +20,11 @@ class YahooQuote(object):
             self.logger.info('output folder %s not exist, create' % self.output)
             os.mkdir(self.output)
         
-    @retry(retry_on_exception=retry_if_http_error, stop_max_attempt_number=5,wait_fixed=2000)
+    # @retry(retry_on_exception=retry_if_http_error, stop_max_attempt_number=5,wait_fixed=5500)
+    @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def get_quote(self,ticker,start_date,end_date,interval='1d'):
         try:
+            self.logger.info('trying get quote for ticker {} ...'.format(ticker))
             quotes = yqd.load_yahoo_quote(ticker=ticker, 
                                  begindate=start_date, 
                                  enddate=end_date,

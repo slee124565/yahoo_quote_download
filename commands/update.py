@@ -273,7 +273,7 @@ where DDate = '%s' and StockID = '%s'" % (
                         except KeyboardInterrupt:
                             self.logger.error('KeyboardInterrupt event, stop process')
                             break
-                        except:
+                        except Exception:
                             self.logger.warning('yahoo_quote for ticker %s fail, skip to next' % ticker)
                             quote_fail_list.append(ticker)
                             continue
@@ -344,7 +344,6 @@ where DDate = '%s' and StockID = '%s'" % (
                             self.logger.warning('ticker {} quotes not enough to check date end')
                             quote_fail_list.append(ticker)
                             continue
-
         except:
             self.logger.error('%s command exception' % self.__class__.__name__, 
                               exc_info=True)
